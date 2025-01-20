@@ -2,7 +2,7 @@
 
 import { Task, CreateTaskDto, UpdateTaskDto } from "@/types/task";
 
-const BASE_API = "http://localhost:8000/api/v1";
+const BASE_API = process.env.API_URL;
 
 interface TaskResponse {
   task: Task;
