@@ -1,4 +1,9 @@
+import { Metadata } from "next";
 import { TaskForm } from "@/components/tasks/form";
+
+export const metadata: Metadata = {
+  title: "Todo App | Create Task",
+};
 
 export default function CreateTaskPage() {
   return (
