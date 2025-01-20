@@ -20,7 +20,7 @@ export default function EditTaskPage({
         const currentTask = await getTaskById(Number(id));
         setTask(currentTask);
       } catch {
-        console.log("Something went wrong");
+        setTask(null);
       } finally {
         setLoading(false);
       }
