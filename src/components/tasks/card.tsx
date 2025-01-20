@@ -36,7 +36,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
       {/* Task Item */}
       <div className="relative">
         <Link
-          href={`/tasks/${task.id}/edit`}
+          href={`/tasks/${task.id}`}
           className="flex gap-4 justify-between items-center hover:bg-background-muted/90 bg-background-muted p-4 rounded-lg"
         >
           <p
