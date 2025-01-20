@@ -4,6 +4,15 @@ import { Task, CreateTaskDto, UpdateTaskDto } from "@/types/task";
 
 const BASE_API = "http://localhost:8000/api/v1";
 
+interface TaskResponse {
+  task: Task;
+}
+interface Error {
+  error: {
+    message: string;
+  }[];
+}
+
 export const getTasks = async (): Promise<Task[]> => {
   const response = await fetch(`${BASE_API}/tasks`);
   const data = await response.json();
@@ -11,14 +20,12 @@ export const getTasks = async (): Promise<Task[]> => {
 };
 
 export const getTaskById = async (id: number): Promise<Task> => {
-  console.log(`FETCHING: ${BASE_API}/tasks/${id}`);
   const response = await fetch(`${BASE_API}/tasks/${id}`);
   const data = await response.json();
   return data.task;
 };
 
 export const deleteTask = async (id: number) => {
-  console.log(`${BASE_API}/tasks/${id}`);
   const response = await fetch(`${BASE_API}/tasks/${id}`, {
     method: "DELETE",
   });
@@ -35,8 +42,13 @@ export const createTask = async (task: CreateTaskDto) => {
     },
     body: JSON.stringify(task),
   });
-  const data = await response.json();
-  return data.task;
+  const data: TaskResponse | Error = await response.json();
+
+  if ("task" in data) {
+    return data.task;
+  } else {
+    return { error: data.error.map((e) => e.message) };
+  }
 };
 
 export const updateTask = async ({
@@ -53,6 +65,11 @@ export const updateTask = async ({
     },
     body: JSON.stringify(task),
   });
-  const data = await response.json();
-  return data.task;
+  const data: TaskResponse | Error = await response.json();
+
+  if ("task" in data) {
+    return data.task;
+  } else {
+    return { error: data.error.map((e) => e.message) };
+  }
 };

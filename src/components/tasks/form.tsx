@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import arrowLeftIcon from "../../../public/icons/arrow-left.svg";
@@ -13,6 +13,8 @@ import { createTask, updateTask } from "@/api/tasks";
 export const TaskForm = ({ currentTask }: { currentTask?: Task }) => {
   const router = useRouter();
   const [selectedColor, setSelectedColor] = useState<TaskColor>();
+  const [title, setTitle] = useState<string>("");
+  const [formError, setFormError] = useState<string | null>(null);
 
   const colors: TaskColor[] = [
     "red",
@@ -35,16 +37,37 @@ export const TaskForm = ({ currentTask }: { currentTask?: Task }) => {
       : "none";
     if (currentTask) {
       // update task
-      await updateTask({
+      const res = await updateTask({
         id: Number(currentTask.id),
         task: { title, color },
       });
+      if ("error" in res) {
+        setFormError(res.error[0]);
+        return;
+      }
+      router.push("/");
     } else {
       // create new task
-      await createTask({ title, color });
+      const res = await createTask({ title, color });
+      if ("error" in res) {
+        if ("error" in res) {
+          setFormError(res.error[0]);
+          return;
+        }
+        return;
+      }
+      router.push("/");
     }
-    router.push("/");
   };
+
+  useEffect(() => {
+    if (title && formError) {
+      setFormError(null);
+    }
+    if (currentTask) {
+      setSelectedColor(currentTask.color);
+    }
+  }, [currentTask, title, formError]);
 
   return (
     <div>
@@ -61,11 +84,18 @@ export const TaskForm = ({ currentTask }: { currentTask?: Task }) => {
         <label htmlFor="title" className="text-primary font-bold">
           Title
         </label>
+        {formError && (
+          <p className="text-red-500 font-bold">Title is required</p>
+        )}
         <input
           type="text"
           name="title"
           defaultValue={currentTask ? currentTask.title : ""}
           className="w-full rounded-lg p-4 bg-background-muted"
+          onChange={(e) => setTitle(e.target.value)}
+          style={{
+            border: formError ? "2px solid var(--tag-red)" : "",
+          }}
           placeholder={currentTask ? currentTask.title : "Enter task title"}
         />
         <label htmlFor="color" className="text-primary font-bold">
