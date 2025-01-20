@@ -41,7 +41,7 @@ export const TaskCard = ({ task }: { task: Task }) => {
         >
           <p
             className={twMerge(
-              "font-bold pl-10",
+              "font-bold px-10",
               task.completed ? "line-through text-muted" : ""
             )}
           >

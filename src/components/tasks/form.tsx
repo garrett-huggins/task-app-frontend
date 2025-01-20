@@ -3,59 +3,47 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import arrowLeftIcon from "../../../public/icons/arrow-left.svg";
+import { BackButton } from "../ui/back-button";
 import plusIcon from "../../../public/icons/plus.svg";
 import checkIcon from "../../../public/icons/check.svg";
 import { useRouter } from "next/navigation";
 import { TaskColor, Task } from "@/types/task";
 import { createTask, updateTask } from "@/api/tasks";
+import { ColorSelect } from "@/components/tasks/color-select";
+
+const colors: TaskColor[] = [
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "blue",
+  "indigo",
+  "purple",
+  "pink",
+];
 
 export const TaskForm = ({ currentTask }: { currentTask?: Task }) => {
   const router = useRouter();
-  const [selectedColor, setSelectedColor] = useState<TaskColor>();
-  const [title, setTitle] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<TaskColor>(
+    currentTask?.color || "none"
+  );
+  const [title, setTitle] = useState<string>(currentTask?.title || "");
   const [formError, setFormError] = useState<string | null>(null);
-
-  const colors: TaskColor[] = [
-    "red",
-    "orange",
-    "yellow",
-    "green",
-    "blue",
-    "indigo",
-    "purple",
-    "pink",
-  ];
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // type safe form data
     const formData = new FormData(e.currentTarget);
     const title = formData.get("title") as string;
-    const color = formData.get("color")
-      ? (formData.get("color") as TaskColor)
-      : "none";
-    if (currentTask) {
-      // update task
-      const res = await updateTask({
-        id: Number(currentTask.id),
-        task: { title, color },
-      });
-      if ("error" in res) {
-        setFormError(res.error[0]);
-        return;
-      }
-      router.push("/");
+    const color = selectedColor || "none";
+
+    const taskData = { title, color };
+    const res = currentTask
+      ? await updateTask({ id: Number(currentTask.id), task: taskData })
+      : await createTask(taskData);
+
+    if ("error" in res) {
+      setFormError(res.error[0]);
     } else {
-      // create new task
-      const res = await createTask({ title, color });
-      if ("error" in res) {
-        if ("error" in res) {
-          setFormError(res.error[0]);
-          return;
-        }
-        return;
-      }
       router.push("/");
     }
   };
@@ -64,23 +52,14 @@ export const TaskForm = ({ currentTask }: { currentTask?: Task }) => {
     if (title && formError) {
       setFormError(null);
     }
-    if (currentTask) {
-      setSelectedColor(currentTask.color);
-    }
-  }, [currentTask, title, formError]);
+  }, [title, formError]);
 
   return (
     <div>
-      <button className="hover:bg-gray-100/10 rounded-full">
-        <Image
-          src={arrowLeftIcon}
-          alt="Back Icon"
-          width={24}
-          height={24}
-          onClick={() => router.back()}
-        />
-      </button>
+      <BackButton />
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Title */}
         <label htmlFor="title" className="text-primary font-bold">
           Title
         </label>
@@ -98,37 +77,24 @@ export const TaskForm = ({ currentTask }: { currentTask?: Task }) => {
           }}
           placeholder={currentTask ? currentTask.title : "Enter task title"}
         />
+
+        {/* Color Select */}
         <label htmlFor="color" className="text-primary font-bold">
           Color
         </label>
         <div className="flex gap-2">
           {colors.map((color) => (
-            <label
+            <ColorSelect
               key={color}
-              className={`cursor-pointer p-2 border-2 rounded-full ${
-                selectedColor === color ? "border-white" : "border-transparent"
-              }`}
-              style={{
-                backgroundColor: `var(--tag-${color})`,
-                width: "50px",
-                height: "50px",
-              }}
-            >
-              <input
-                key={color}
-                type="radio"
-                name="color"
-                defaultChecked={
-                  currentTask ? currentTask.color === color : false
-                }
-                value={color}
-                onChange={() => setSelectedColor(color)}
-                className="hidden"
-                aria-label={color.charAt(0).toUpperCase() + color.slice(1)}
-              />
-            </label>
+              color={color}
+              selectedColor={selectedColor}
+              setSelectedColor={setSelectedColor}
+              currentTask={currentTask}
+            />
           ))}
         </div>
+
+        {/* Submit Button */}
         <Button
           type="submit"
           icon={
