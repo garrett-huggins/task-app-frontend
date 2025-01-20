@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import { TaskForm } from "@/components/tasks/form";
 import { getTaskById } from "@/api/tasks";
 import { Task } from "@/types/task";
+import { redirect } from "next/navigation";
 
 export default function EditTaskPage({
   params,
@@ -14,6 +15,7 @@ export default function EditTaskPage({
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch task by id on mount
   useEffect(() => {
     const fetchTask = async () => {
       try {
@@ -29,12 +31,21 @@ export default function EditTaskPage({
   }, [id]);
 
   if (loading) {
-    return <p>Loading...</p>;
+    <main className="container mx-auto px-4 pt-20">
+      <TaskForm />;
+    </main>;
   }
 
-  return (
-    <main className="container mx-auto px-4 pt-20">
-      {task ? <TaskForm currentTask={task} /> : <p>Task not found</p>}
-    </main>
-  );
+  if (!loading && task) {
+    return (
+      <main className="container mx-auto px-4 pt-20">
+        <TaskForm currentTask={task} />
+      </main>
+    );
+  }
+
+  // Redirect to home if task not found
+  if (!loading && !task) {
+    redirect("/");
+  }
 }
