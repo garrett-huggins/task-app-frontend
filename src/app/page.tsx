@@ -8,10 +8,17 @@ import { TaskTable } from "@/components/tasks/table";
 export default async function Home() {
   const tasks = await getTasks();
 
+  const sortedTasks = tasks.sort((a, b) =>
+    a.updatedAt < b.updatedAt ? 1 : -1
+  );
+  const sortCompletedToTop = sortedTasks.sort((a, b) =>
+    a.completed === b.completed ? 0 : a.completed ? -1 : 1
+  );
+
   return (
     <main className="container mx-auto px-4">
       <CreateTaskButton />
-      <TaskTable tasks={tasks} />
+      <TaskTable tasks={sortCompletedToTop} />
     </main>
   );
 }
