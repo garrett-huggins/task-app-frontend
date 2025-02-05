@@ -4,25 +4,23 @@ import { Task, CreateTaskDto, UpdateTaskDto } from "@/types/task";
 
 const BASE_API = process.env.API_URL;
 
-interface TaskResponse {
-  task: Task;
-}
 interface Error {
-  error: {
-    message: string;
+  error: string;
+  errors: {
+    defaultMessage: string;
   }[];
 }
 
 export const getTasks = async (): Promise<Task[]> => {
   const response = await fetch(`${BASE_API}/tasks`);
   const data = await response.json();
-  return data.tasks;
+  return data;
 };
 
 export const getTaskById = async (id: number): Promise<Task> => {
   const response = await fetch(`${BASE_API}/tasks/${id}`);
   const data = await response.json();
-  return data.task;
+  return data;
 };
 
 export const deleteTask = async (id: number) => {
@@ -42,12 +40,12 @@ export const createTask = async (task: CreateTaskDto) => {
     },
     body: JSON.stringify(task),
   });
-  const data: TaskResponse | Error = await response.json();
+  const data: Task | Error = await response.json();
 
-  if ("task" in data) {
-    return data.task;
+  if ("error" in data) {
+    return { error: data.errors.map((e) => e.defaultMessage) };
   } else {
-    return { error: data.error.map((e) => e.message) };
+    return data;
   }
 };
 
@@ -59,17 +57,17 @@ export const updateTask = async ({
   task: UpdateTaskDto;
 }) => {
   const response = await fetch(`${BASE_API}/tasks/${id}`, {
-    method: "PUT",
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(task),
   });
-  const data: TaskResponse | Error = await response.json();
+  const data: Task | Error = await response.json();
 
-  if ("task" in data) {
-    return data.task;
+  if ("error" in data) {
+    return { error: data.errors.map((e) => e.defaultMessage) };
   } else {
-    return { error: data.error.map((e) => e.message) };
+    return data;
   }
 };
